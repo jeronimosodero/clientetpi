@@ -1,7 +1,8 @@
 package dacs.tpi.model;
 
 
-
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class Direccion {
 
@@ -19,7 +20,22 @@ public class Direccion {
 	private String mProvincia;
 
 	private String mPais;
-	
+
+	public Direccion(JSONObject json) {
+
+        try {
+            mCalle = json.getString("calle");
+            mPiso = json.getInt("piso");
+            mDepartamento = json.getInt("departamento");
+            mCiudad = json.getString("ciudad");
+            mProvincia = json.getString("provincia");
+            mPais = json.getString("pais");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+	}
+
 	// Getters/Setters -------------------------------------------------------------
 	
 	public String getCalle() {

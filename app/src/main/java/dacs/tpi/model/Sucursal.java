@@ -1,6 +1,8 @@
 package dacs.tpi.model;
 
 
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class Sucursal{
 
@@ -9,7 +11,20 @@ public class Sucursal{
 	private String mEmail;
 
 	private Direccion mDireccion;
-	
+
+	public Sucursal(JSONObject json) {
+        try {
+            mTelefono = json.getString("telefono");
+            mEmail = json.getString("email");
+            JSONObject direccion = json.getJSONObject("direccion");
+            mDireccion = new Direccion(direccion);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+
+	}
+
 	// Getters/Setters --------------------------------------------------------
 	public String getTelefono() {
 		return mTelefono;
