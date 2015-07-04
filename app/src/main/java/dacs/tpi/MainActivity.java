@@ -10,7 +10,8 @@ import org.jsoup.Jsoup;
 
 
 public class MainActivity extends AppCompatActivity {
-    private static final String TAG = " MainActivity";
+    private static final String TAG = "MainActivity";
+    private static final String URL_BASE = "http://192.168.1.8:8080/tpi/rest";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,13 +24,13 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(Void... voids) {
+
             try {
-                String url = "http://192.168.1.75:8080/tpi/rest/clientes/1";
+                String url = URL_BASE+"/clientes/1";
                 String data = Jsoup.connect(url).ignoreContentType(true).execute().body();
                 JSONObject json = new JSONObject(data);
                 String email = json.getString("email");
                 Log.d(TAG, "email: " + email);
-
             }catch (Exception e){
                 e.printStackTrace();
             }
