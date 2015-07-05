@@ -10,9 +10,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
+
 
 import dacs.tpi.R;
 import dacs.tpi.model.Estado;
@@ -26,6 +28,7 @@ public class EstadosFragment extends Fragment{
     private static final String URL_BASE = "http://192.168.1.8:8080/tpi/rest";
     private static final String ARG_PAQUETE_ID = "paquete_id";
     private RecyclerView mRecycler;
+    private PaqueteAdapter mAdapter;
     private Paquete mPaquete;
 
     public static EstadosFragment newInstance(int paqueteId){
@@ -48,11 +51,6 @@ public class EstadosFragment extends Fragment{
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getActivity());
         mRecycler.setLayoutManager(layoutManager);
         mRecycler.setHasFixedSize(true);
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
         Bundle args = getArguments();
         if(args!=null){
             new RestCallTask().execute(args.getInt(ARG_PAQUETE_ID));
@@ -71,16 +69,104 @@ public class EstadosFragment extends Fragment{
                 String data = Jsoup.connect(url).ignoreContentType(true).execute().body();
                 JSONObject json = new JSONObject(data);
                 mPaquete = new Paquete(json);
-                for (Estado estado: mPaquete.getEstado()){
-                    Log.d(TAG,"Latitud: "+estado.getLatitud());
-                    Log.d(TAG,"fecha: "+estado.getFecha_hora());
-                }
-
             }catch (Exception e){
                 e.printStackTrace();
             }
             return null;
         }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+           if(mPaquete!=null){
+               mAdapter = new PaqueteAdapter(mPaquete);
+               mRecycler.setAdapter(mAdapter);
+           }
+        }
     }
+
+       public class PaqueteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
+        private Paquete paquete;
+        private static final int TYPE_HEADER = 0;
+        private static final int TYPE_ITEM = 1;
+
+        public PaqueteAdapter(Paquete paquete) {
+            this.paquete = paquete;
+        }
+
+        public void setPaquete(Paquete paquete){
+            this.paquete = paquete;
+        }
+
+        @Override
+        public int getItemCount() {
+            return paquete.getEstado().size()+1;
+        }
+
+        @Override
+        public int getItemViewType(int position) {
+            if(position==0){
+                return TYPE_HEADER;
+            }
+            return TYPE_ITEM;
+        }
+
+        @Override
+        public void onBindViewHolder(RecyclerView.ViewHolder vh, int i) {
+            if(vh instanceof EstadoViewHolder){
+                final Estado estado = paquete.getEstado().get(i -1);
+
+                EstadoViewHolder evh = (EstadoViewHolder) vh;
+
+                evh.vSucursal.setText(estado.getSucursal().getDireccion().getCiudad());
+                android.text.format.DateFormat df = new android.text.format.DateFormat();
+                String fecha = df.format("dd/MM/yyyy hh:mm",estado.getFecha_hora()).toString();
+                evh.vFechaHora.setText(fecha);
+
+            } else {
+                HeaderViewHolder hvh = (HeaderViewHolder) vh;
+                hvh.vContenido.setText(paquete.getContenido());
+            }
+
+
+        }
+
+        @Override
+        public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
+
+            if(i==0){
+                View itemView = LayoutInflater.
+                        from(viewGroup.getContext()).
+                        inflate(R.layout.list_item_card_paquete, viewGroup, false);
+                return new HeaderViewHolder(itemView);
+            } else {
+                View itemView = LayoutInflater.
+                        from(viewGroup.getContext()).
+                        inflate(R.layout.list_item_card_estado, viewGroup, false);
+                return new EstadoViewHolder(itemView);
+            }
+        }
+    }
+
+    public static class EstadoViewHolder extends RecyclerView.ViewHolder {
+        protected TextView vFechaHora,vSucursal;
+
+        public EstadoViewHolder(View v) {
+
+            super(v);
+            vFechaHora = (TextView)v.findViewById(R.id.fecha_hora_estado);
+            vSucursal = (TextView)v.findViewById(R.id.sucursalTextView);
+
+        }
+    }
+
+    public static class HeaderViewHolder extends RecyclerView.ViewHolder {
+        TextView vContenido;
+        public HeaderViewHolder(View itemView) {
+            super(itemView);
+            vContenido = (TextView)itemView.findViewById(R.id.contenido_textView);
+        }
+    }
+
 }
 

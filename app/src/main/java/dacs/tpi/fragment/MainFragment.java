@@ -38,7 +38,6 @@ public class MainFragment extends Fragment {
                     e.printStackTrace();
                     Toast.makeText(getActivity(),"error",Toast.LENGTH_SHORT).show();
                 }
-
                 if(id!=0){
                     Intent i = new Intent(MainFragment.this.getActivity(),EstadosActivity.class);
                     i.putExtra(EstadosActivity.EXTRA_PAQUETE_ID,id);
