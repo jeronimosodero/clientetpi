@@ -15,11 +15,12 @@ import android.widget.Toast;
 import dacs.tpi.R;
 import dacs.tpi.activity.EstadosActivity;
 import dacs.tpi.activity.MainActivity;
+import dacs.tpi.activity.UnidadActivity;
 
 
 public class MainFragment extends Fragment {
-    private EditText mIp,mOrdenId;
-    private Button mSeguirOrden,mGuardarIp;
+    private EditText mIp,mOrdenId,mUnidadId;
+    private Button mSeguirOrden,mGuardarIp,mActualizarUnidad;
     private SharedPreferences mPrefs = null;
     public static final String SAVE_IP = "save_ip";
 
@@ -60,8 +61,28 @@ public class MainFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 String ip = mIp.getText().toString();
-                mPrefs.edit().putString(SAVE_IP,ip).commit();
-                Toast.makeText(getActivity(),"Ip guardada",Toast.LENGTH_SHORT).show();
+                mPrefs.edit().putString(SAVE_IP, ip).commit();
+                Toast.makeText(getActivity(), "Ip guardada", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        mUnidadId = (EditText)v.findViewById(R.id.id_unidad);
+        mActualizarUnidad = (Button)v.findViewById(R.id.unidad_button);
+        mActualizarUnidad.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                int id = 0;
+                try{
+                    id = Integer.parseInt(mUnidadId.getText().toString());
+                } catch (Exception e){
+                    e.printStackTrace();
+                    Toast.makeText(getActivity(),"error",Toast.LENGTH_SHORT).show();
+                }
+                if(id!=0){
+                    Intent i = new Intent(MainFragment.this.getActivity(),UnidadActivity.class);
+                    i.putExtra(UnidadActivity.EXTRA_UNIDAD_ID,id);
+                    startActivity(i);
+                }
             }
         });
 

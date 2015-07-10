@@ -33,6 +33,8 @@ public class Orden {
     public Orden(JSONObject json){
         try {
             mEstado = new ArrayList<>();
+            mOrigen = new Sucursal(json.getJSONObject("origen"));
+            mDestino = new Sucursal(json.getJSONObject("destino"));
             JSONArray estados = json.getJSONArray("estado");
             for(int i = 0;i<estados.length();i++){
                 JSONObject estado = estados.getJSONObject(i);

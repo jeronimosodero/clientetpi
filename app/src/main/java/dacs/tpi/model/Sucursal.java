@@ -12,10 +12,21 @@ public class Sucursal{
 
 	private Direccion mDireccion;
 
-	public Sucursal(JSONObject json) {
+	private Long mId;
+
+    public Long getId() {
+        return mId;
+    }
+
+    public void setId(Long id) {
+        mId = id;
+    }
+
+    public Sucursal(JSONObject json) {
         try {
             mTelefono = json.getString("telefono");
             mEmail = json.getString("email");
+			mId = json.getLong("id");
             JSONObject direccion = json.getJSONObject("direccion");
             mDireccion = new Direccion(direccion);
         } catch (JSONException e) {

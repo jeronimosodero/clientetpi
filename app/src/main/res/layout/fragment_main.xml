@@ -16,6 +16,17 @@
         android:text="@string/seguir_paquete"/>
 
     <EditText
+        android:id="@+id/id_unidad"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="number"/>
+    <Button
+        android:id="@+id/unidad_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/ver_datos_unidad"/>
+
+    <EditText
         android:id="@+id/ip_editText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>

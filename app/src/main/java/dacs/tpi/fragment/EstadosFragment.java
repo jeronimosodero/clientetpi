@@ -20,11 +20,6 @@ import dacs.tpi.R;
 import dacs.tpi.activity.MainActivity;
 import dacs.tpi.model.Estado;
 import dacs.tpi.model.Orden;
-import dacs.tpi.model.Paquete;
-
-/**
- * Created by Jerónimo Sodero on 04/07/2015.
- */
 public class EstadosFragment extends Fragment{
     private static final String TAG = "EstadosFragment";
     private static final String ARG_ORDEN_ID = "orden_id";
