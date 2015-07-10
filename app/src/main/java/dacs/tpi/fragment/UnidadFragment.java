@@ -92,19 +92,60 @@ public class UnidadFragment extends Fragment {
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            if(mUnidad!=null){
-                if(mUnidad.getViajeActual().getOrdenes().size()>0){
-                    if(mUnidad.getViajeActual().getOrdenes().get(0).getEstado().size()==0){
-                        new SubirEstado().execute();
-                    }
 
-                }
 
 
                 ListAdapter customAdapter = new ListAdapter(UnidadFragment.this.getActivity(), android.R.layout.simple_list_item_1,mUnidad.getViajeActual().getRuta().getSucursales());
                 mList.setAdapter(customAdapter);
 
             }
+
+    }
+
+    private class SubirEstado extends AsyncTask<Void,Void,Void>{
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            try {
+                String ip = mPrefs.getString(MainFragment.SAVE_IP,"");
+                String url ="http://"+ip+":8080/tpi/rest/viaje/actualizarViaje";
+
+                List<Estado> estados = mUnidad.getViajeActual().getOrdenes().get(0).getEstado();
+                Estado ultimoEstado = estados.get(estados.size()-1);
+                Long idSucursalSiguiente = -1L;
+                int sucursalActual = -1;
+
+                for(int i=0;i<mUnidad.getViajeActual().getRuta().getSucursales().size();i++){
+                    Sucursal sucursal = mUnidad.getViajeActual().getRuta().getSucursales().get(i);
+                    if(sucursal.getDireccion().getCiudad().equals(ultimoEstado.getSucursal().getDireccion().getCiudad())){
+                        sucursalActual = i;
+                    }
+                }
+
+
+
+                if(sucursalActual+1>=mUnidad.getViajeActual().getRuta().getSucursales().size()){
+                    idSucursalSiguiente = -1L;
+                } else {
+                    idSucursalSiguiente = mUnidad.getViajeActual().getRuta().getSucursales().get(sucursalActual+1).getId();
+                }
+
+
+
+                if(idSucursalSiguiente!=-1){
+                    String data = Jsoup.connect(url).ignoreContentType(true).data("idViaje",String.valueOf(mUnidad.getViajeActual().getId()))
+                            .data("idSucursal", String.valueOf(idSucursalSiguiente))
+                            .post().body().text();
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            new RestCallTask().execute(Integer.valueOf(String.valueOf(mUnidad.getId())));
         }
     }
     public class ListAdapter extends ArrayAdapter<Sucursal> {
@@ -167,58 +208,7 @@ public class UnidadFragment extends Fragment {
 
     }
 
-    private class SubirEstado extends AsyncTask<Void,Void,Void>{
 
-        @Override
-        protected Void doInBackground(Void... voids) {
-            try {
-                String ip = mPrefs.getString(MainFragment.SAVE_IP,"");
-                String url ="http://"+ip+":8080/tpi/rest/viaje/actualizarViaje";
-
-                List<Estado> estados = mUnidad.getViajeActual().getOrdenes().get(0).getEstado();
-                Estado ultimoEstado = estados.get(estados.size()-1);
-                Long idSucursalSiguiente = -1L;
-                int sucursalActual = -1;
-
-                for(int i=0;i<mUnidad.getViajeActual().getRuta().getSucursales().size();i++){
-                    Sucursal sucursal = mUnidad.getViajeActual().getRuta().getSucursales().get(i);
-                    if(sucursal.getDireccion().getCiudad().equals(ultimoEstado.getSucursal().getDireccion().getCiudad())){
-                        sucursalActual = i;
-                    }
-                }
-
-
-
-               if(sucursalActual+1>=mUnidad.getViajeActual().getRuta().getSucursales().size()){
-                   idSucursalSiguiente = -1L;
-               } else {
-                   idSucursalSiguiente = mUnidad.getViajeActual().getRuta().getSucursales().get(sucursalActual+1).getId();
-               }
-
-
-
-                if(idSucursalSiguiente!=-1){
-                    String data = Jsoup.connect(url).ignoreContentType(true).data("idViaje",String.valueOf(mUnidad.getViajeActual().getId()))
-                            .data("idSucursal", String.valueOf(idSucursalSiguiente))
-                            .post().body().text();
-                }
-
-
-              /*  JSONObject json = new JSONObject(data);
-                mUnidad = new Unidad(json);
-                Log.d(TAG,"hola");
-                */
-            }catch (Exception e){
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            new RestCallTask().execute(Integer.valueOf(String.valueOf(mUnidad.getId())));
-        }
-    }
 
 
 }
