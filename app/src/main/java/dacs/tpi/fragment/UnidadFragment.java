@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -37,6 +38,7 @@ public class UnidadFragment extends Fragment {
     private SharedPreferences mPrefs = null;
     private Unidad mUnidad;
     private ListView mList;
+    private Button mSiguiente;
 
     public static UnidadFragment newInstance(int unidadId){
         Bundle args = new Bundle();
@@ -59,6 +61,13 @@ public class UnidadFragment extends Fragment {
         mPrefs = getActivity().getSharedPreferences(MainActivity.APP_NAME, MainActivity.MODE_PRIVATE);
         mList = (ListView)v.findViewById(R.id.listView);
         Bundle args = getArguments();
+        mSiguiente = (Button)v.findViewById(R.id.siguienteButton);
+        mSiguiente.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new SubirEstado().execute();
+            }
+        });
         new RestCallTask().execute(args.getInt(ARG_UNIDAD_ID));
 
     }
@@ -139,6 +148,7 @@ public class UnidadFragment extends Fragment {
 
                 TextView tv = (TextView)v;
                 tv.setText(s.getDireccion().getCiudad());
+                tv.setBackgroundColor(Color.WHITE);
 
                 List<Estado> estados = mUnidad.getViajeActual().getOrdenes().get(0).getEstado();
                 try{
@@ -165,12 +175,33 @@ public class UnidadFragment extends Fragment {
                 String ip = mPrefs.getString(MainFragment.SAVE_IP,"");
                 String url ="http://"+ip+":8080/tpi/rest/viaje/actualizarViaje";
 
+                List<Estado> estados = mUnidad.getViajeActual().getOrdenes().get(0).getEstado();
+                Estado ultimoEstado = estados.get(estados.size()-1);
+                Long idSucursalSiguiente = -1L;
+                int sucursalActual = -1;
 
-               String data = Jsoup.connect(url).ignoreContentType(true).data("idViaje",String.valueOf(mUnidad.getViajeActual().getId()))
-                        .data("idSucursal", String.valueOf(mUnidad.getViajeActual().getRuta().getSucursales().get(0).getId()))
-                        .post().body().text();
-                Log.d(TAG, data);
+                for(int i=0;i<mUnidad.getViajeActual().getRuta().getSucursales().size();i++){
+                    Sucursal sucursal = mUnidad.getViajeActual().getRuta().getSucursales().get(i);
+                    if(sucursal.getDireccion().getCiudad().equals(ultimoEstado.getSucursal().getDireccion().getCiudad())){
+                        sucursalActual = i;
+                    }
+                }
 
+
+
+               if(sucursalActual+1>=mUnidad.getViajeActual().getRuta().getSucursales().size()){
+                   idSucursalSiguiente = -1L;
+               } else {
+                   idSucursalSiguiente = mUnidad.getViajeActual().getRuta().getSucursales().get(sucursalActual+1).getId();
+               }
+
+
+
+                if(idSucursalSiguiente!=-1){
+                    String data = Jsoup.connect(url).ignoreContentType(true).data("idViaje",String.valueOf(mUnidad.getViajeActual().getId()))
+                            .data("idSucursal", String.valueOf(idSucursalSiguiente))
+                            .post().body().text();
+                }
 
 
               /*  JSONObject json = new JSONObject(data);
