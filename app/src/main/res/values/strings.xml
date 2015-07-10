@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">Envios DACS</string>
-    <string name="seguir_paquete">Seguir Paquete</string>
-    <string name="contenido">Contenido: </string>
+    <string name="seguir_paquete">Seguir Orden</string>
     <string name="sucursal">Sucursal: </string>
 </resources>

@@ -1,6 +1,7 @@
 package dacs.tpi.fragment;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -13,27 +14,30 @@ import android.widget.Toast;
 
 import dacs.tpi.R;
 import dacs.tpi.activity.EstadosActivity;
+import dacs.tpi.activity.MainActivity;
 
-/**
- * Created by Jerónimo Sodero on 04/07/2015.
- */
+
 public class MainFragment extends Fragment {
-    private EditText mEditText;
-    private Button mButton;
+    private EditText mIp,mOrdenId;
+    private Button mSeguirOrden,mGuardarIp;
+    private SharedPreferences mPrefs = null;
+    public static final String SAVE_IP = "save_ip";
+
 
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        mPrefs = getActivity().getSharedPreferences(MainActivity.APP_NAME, MainActivity.MODE_PRIVATE);
         View v = inflater.inflate(R.layout.fragment_main,container,false);
-        mEditText = (EditText)v.findViewById(R.id.id_editText);
-        mButton = (Button)v.findViewById(R.id.seguir_button);
-        mButton.setOnClickListener(new View.OnClickListener() {
+        mOrdenId = (EditText)v.findViewById(R.id.id_editText);
+        mSeguirOrden = (Button)v.findViewById(R.id.seguir_button);
+        mSeguirOrden.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 int id = 0;
                 try{
-                    id = Integer.parseInt(mEditText.getText().toString());
+                    id = Integer.parseInt(mOrdenId.getText().toString());
                 } catch (Exception e){
                     e.printStackTrace();
                     Toast.makeText(getActivity(),"error",Toast.LENGTH_SHORT).show();
@@ -47,6 +51,20 @@ public class MainFragment extends Fragment {
 
             }
         });
+
+        mGuardarIp = (Button)v.findViewById(R.id.guardarIp);
+        mIp = (EditText)v.findViewById(R.id.ip_editText);
+        String ipActual = mPrefs.getString(SAVE_IP,"192....");
+        mIp.setText(ipActual);
+        mGuardarIp.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String ip = mIp.getText().toString();
+                mPrefs.edit().putString(SAVE_IP,ip).commit();
+                Toast.makeText(getActivity(),"Ip guardada",Toast.LENGTH_SHORT).show();
+            }
+        });
+
         return v;
     }
 }

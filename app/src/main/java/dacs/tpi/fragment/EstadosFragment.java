@@ -1,12 +1,12 @@
 package dacs.tpi.fragment;
 
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,7 +17,9 @@ import org.jsoup.Jsoup;
 
 
 import dacs.tpi.R;
+import dacs.tpi.activity.MainActivity;
 import dacs.tpi.model.Estado;
+import dacs.tpi.model.Orden;
 import dacs.tpi.model.Paquete;
 
 /**
@@ -25,15 +27,15 @@ import dacs.tpi.model.Paquete;
  */
 public class EstadosFragment extends Fragment{
     private static final String TAG = "EstadosFragment";
-    private static final String URL_BASE = "http://192.168.1.8:8080/tpi/rest";
-    private static final String ARG_PAQUETE_ID = "paquete_id";
+    private static final String ARG_ORDEN_ID = "orden_id";
     private RecyclerView mRecycler;
-    private PaqueteAdapter mAdapter;
-    private Paquete mPaquete;
+    private OrdenAdapter mAdapter;
+    private Orden mOrden;
+    private SharedPreferences mPrefs = null;
 
-    public static EstadosFragment newInstance(int paqueteId){
+    public static EstadosFragment newInstance(int ordenId){
         Bundle args = new Bundle();
-        args.putInt(ARG_PAQUETE_ID,paqueteId);
+        args.putInt(ARG_ORDEN_ID,ordenId);
         EstadosFragment ef = new EstadosFragment();
         ef.setArguments(args);
         return ef;
@@ -47,13 +49,14 @@ public class EstadosFragment extends Fragment{
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        mPrefs = getActivity().getSharedPreferences(MainActivity.APP_NAME, MainActivity.MODE_PRIVATE);
         mRecycler = (RecyclerView) view.findViewById(R.id.recyclerView);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getActivity());
         mRecycler.setLayoutManager(layoutManager);
         mRecycler.setHasFixedSize(true);
         Bundle args = getArguments();
         if(args!=null){
-            new RestCallTask().execute(args.getInt(ARG_PAQUETE_ID));
+            new RestCallTask().execute(args.getInt(ARG_ORDEN_ID));
         }
 
     }
@@ -62,13 +65,14 @@ public class EstadosFragment extends Fragment{
 
         @Override
         protected Void doInBackground(Integer... integers) {
-            int paqueteId = integers[0];
+            int ordenId = integers[0];
 
             try {
-                String url = URL_BASE+"/paquete/"+paqueteId;
+                String ip = mPrefs.getString(MainFragment.SAVE_IP,"");
+                String url ="http://"+ip+":8080/tpi/rest/orden/"+ordenId;
                 String data = Jsoup.connect(url).ignoreContentType(true).execute().body();
                 JSONObject json = new JSONObject(data);
-                mPaquete = new Paquete(json);
+                mOrden = new Orden(json);
             }catch (Exception e){
                 e.printStackTrace();
             }
@@ -77,44 +81,30 @@ public class EstadosFragment extends Fragment{
 
         @Override
         protected void onPostExecute(Void aVoid) {
-           if(mPaquete!=null){
-               mAdapter = new PaqueteAdapter(mPaquete);
+           if(mOrden!=null){
+               mAdapter = new OrdenAdapter(mOrden);
                mRecycler.setAdapter(mAdapter);
            }
         }
     }
 
-       public class PaqueteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+       public class OrdenAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-        private Paquete paquete;
-        private static final int TYPE_HEADER = 0;
-        private static final int TYPE_ITEM = 1;
+        private Orden orden;
 
-        public PaqueteAdapter(Paquete paquete) {
-            this.paquete = paquete;
+        public OrdenAdapter(Orden orden) {
+            this.orden = orden;
         }
 
-        public void setPaquete(Paquete paquete){
-            this.paquete = paquete;
-        }
 
         @Override
         public int getItemCount() {
-            return paquete.getEstado().size()+1;
+            return orden.getEstado().size();
         }
-
-        @Override
-        public int getItemViewType(int position) {
-            if(position==0){
-                return TYPE_HEADER;
-            }
-            return TYPE_ITEM;
-        }
-
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder vh, int i) {
             if(vh instanceof EstadoViewHolder){
-                final Estado estado = paquete.getEstado().get(i -1);
+                final Estado estado = orden.getEstado().get(i);
 
                 EstadoViewHolder evh = (EstadoViewHolder) vh;
 
@@ -123,28 +113,18 @@ public class EstadosFragment extends Fragment{
                 String fecha = df.format("dd/MM/yyyy hh:mm",estado.getFecha_hora()).toString();
                 evh.vFechaHora.setText(fecha);
 
-            } else {
-                HeaderViewHolder hvh = (HeaderViewHolder) vh;
-                hvh.vContenido.setText(paquete.getContenido());
             }
-
-
         }
 
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
 
-            if(i==0){
-                View itemView = LayoutInflater.
-                        from(viewGroup.getContext()).
-                        inflate(R.layout.list_item_card_paquete, viewGroup, false);
-                return new HeaderViewHolder(itemView);
-            } else {
+
                 View itemView = LayoutInflater.
                         from(viewGroup.getContext()).
                         inflate(R.layout.list_item_card_estado, viewGroup, false);
                 return new EstadoViewHolder(itemView);
-            }
+
         }
     }
 
@@ -159,14 +139,5 @@ public class EstadosFragment extends Fragment{
 
         }
     }
-
-    public static class HeaderViewHolder extends RecyclerView.ViewHolder {
-        TextView vContenido;
-        public HeaderViewHolder(View itemView) {
-            super(itemView);
-            vContenido = (TextView)itemView.findViewById(R.id.contenido_textView);
-        }
-    }
-
 }
 
